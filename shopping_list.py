@@ -46,7 +46,7 @@ def get_daily_picks():
     for links in soup.find_all('dd', {'class': 'picks-list'}):
         for link in links.find_all('a', href=True):
             if link.get_text(strip = True):
-                
+                #TODO Verify url is /food/recipes
                 daily_picks.append(link['href'])
-
+    
 get_daily_picks()
