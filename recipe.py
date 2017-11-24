@@ -1,7 +1,9 @@
 class Recipe(object):
+    name =""
     ingredients =[]
-    method = []
+    url = ""
 
-    def __init__(self, ingredients, method):
+    def __init__(self, name, ingredients, url):
+        self.name = name
         self.ingredients = ingredients
-        self.method = method
+        self.url = url
