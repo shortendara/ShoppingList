@@ -6,7 +6,7 @@ import re
 from recipe import Recipe
 import smtplib
 import unicodedata
-#from details import password, email_address
+from details import Details
 
 #Function to retieve recipe
 def get_recipe(recipe_url):
@@ -42,10 +42,11 @@ def get_recipe(recipe_url):
 
 #Function to send recipe to email address
 def email_recipes(recipe_list):
-    email_address = "dara.shorten@gmail.com"
+    email_address = Details.email
+    password = Details.password
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
-    server.login(email_address, 'poiuytr987')
+    server.login(email_address, password)
 
     #Create message including ingredients and cooking method
     msg = ""
