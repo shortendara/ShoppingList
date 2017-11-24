@@ -3,19 +3,20 @@ from bs4 import BeautifulSoup
 from bs4 import element
 import urllib
 import re
-import recipe
+from recipe import Recipe
 import smtplib
 import unicodedata
-from details import password, email_address
+#from details import password, email_address
 
 #Function to retieve recipe
 def get_recipe(recipe_url):
     #Variabales
+    name =""
     ingredients = []
     cooking_method =[]
 
     #Open URL using urllib
-    url = "https://www.bbc.co.uk/"+recipe_url
+    url = "https://www.bbc.co.uk"+recipe_url
     print url
 
     recipe_page = urllib.urlopen(url)
@@ -23,6 +24,9 @@ def get_recipe(recipe_url):
     #Use BeautifulSoup to get html text
     soup = BeautifulSoup(recipe_page, 'lxml')
 
+    #Retrieve recipe name
+    name = soup.find("h1", {'class': 'content-title__text'}).text.encode('utf-8')
+    print name
     #Retrieve each list of recipe ingredients
     for ingredient in soup.find_all('ul', {'class': 'recipe-ingredients__list'}):
         #Convert text from unicode to python str
@@ -33,10 +37,11 @@ def get_recipe(recipe_url):
         #Convert text from unicode to python str
         cooking_method.append(method.text.encode('utf-8'))
 
-    save_recipe(ingredients, cooking_method)
+    recipe_item = Recipe(name, ingredients, url)
+    return recipe_item
 
 #Function to send recipe to email address
-def save_recipe(ingredients, cooking_method):
+def email_recipes(recipe_list):
     email_address = "dara.shorten@gmail.com"
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
@@ -44,10 +49,12 @@ def save_recipe(ingredients, cooking_method):
 
     #Create message including ingredients and cooking method
     msg = ""
-    for ingredient in ingredients:
-        msg += ingredient
-    for method in cooking_method:
-        msg += method+"\n"
+    #Loop through each recipe in list and append to msg
+    for recipe in recipe_list:
+        msg += recipe.name+'\n'
+        msg += recipe.url+'\n'
+        for ingredient in recipe.ingredients:
+            msg += ingredient
     
     server.sendmail(email_address, email_address, msg)
     server.quit()
@@ -67,7 +74,17 @@ def get_daily_picks():
         for link in links.find_all('a', href=True):
             if link.get_text(strip = True):
                 #TODO Verify url is /food/recipes
-                daily_picks.append(link['href'])
+                if link['href'][:13] == "/food/recipes":
+                    daily_picks.append(link['href'])
     
-#get_daily_picks()
-get_recipe("food/recipes/herbycouscouswithbut_92552")
+    return daily_picks
+
+def main():
+    recipe_list = []
+    picks = get_daily_picks()
+    for pick in picks:
+        recipe_list.append(get_recipe(pick))
+    
+    email_recipes(recipe_list)
+    print "Done"
+main()
